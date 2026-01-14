@@ -1,0 +1,21 @@
+{
+  "name": "twitter-react-firebase",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "firebase:login": "npx firebase login",
+    "firebase:init": "npx firebase init",
+    "firebase:emulators": "npx firebase emulators:start",
+    "firebase:deploy": "npx firebase deploy",
+    "firebase:deploy:functions": "npx firebase deploy --only functions",
+    "firebase:deploy:firestore": "npx firebase deploy --only firestore",
+    "firebase:deploy:hosting": "npx firebase deploy --only hosting"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "firebase-tools": "^15.2.1"
+  }
+}
