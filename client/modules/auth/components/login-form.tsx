@@ -4,6 +4,7 @@ import { useForm } from 'react-hook-form';
 import Link from 'next/link';
 
 import { zodResolver } from '@hookform/resolvers/zod';
+import axios from 'axios';
 import { signInWithEmailAndPassword } from 'firebase/auth';
 import z from 'zod';
 
@@ -41,12 +42,14 @@ export function LoginForm() {
 
   const onSubmit = async (data: LoginFormData) => {
     try {
-      const res = await signInWithEmailAndPassword(
+      const cred = await signInWithEmailAndPassword(
         auth,
         data.email,
         data.password,
       );
-      console.log(res);
+      const idToken = await cred.user.getIdToken();
+
+      await axios.post('/api/auth/session', { idToken });
     } catch (error) {
       console.error(error);
     }

@@ -1,21 +1,32 @@
 {
   "name": "twitter-react-firebase",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "private": true,
+  "workspaces": [
+    "client",
+    "functions"
+  ],
   "scripts": {
+    "dev": "npm run dev --workspace=client",
+    "dev:emulators": "npx firebase emulators:start",
+    "build": "npm run build --workspace=client",
+    "start": "npm run start --workspace=client",
     "firebase:login": "npx firebase login",
     "firebase:init": "npx firebase init",
     "firebase:emulators": "npx firebase emulators:start",
+    "firebase:emulators:export": "npx firebase emulators:start --export-on-exit=./emulator-data --import=./emulator-data",
     "firebase:deploy": "npx firebase deploy",
     "firebase:deploy:functions": "npx firebase deploy --only functions",
     "firebase:deploy:firestore": "npx firebase deploy --only firestore",
-    "firebase:deploy:hosting": "npx firebase deploy --only hosting"
+    "functions:build": "npm run build --workspace=functions",
+    "functions:logs": "npx firebase functions:log"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "devDependencies": {
-    "firebase-tools": "^15.2.1"
+    "firebase-tools": "^15.2.1",
+    "prettier": "^3.8.0",
+    "prettier-plugin-tailwindcss": "^0.7.2"
   }
 }
