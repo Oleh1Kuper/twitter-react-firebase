@@ -1,6 +1,9 @@
+import { connection } from 'next/server';
+
 import EmailVerified from '@/modules/auth/components/email-verified';
 
-const EmailVerifiedPage = () => {
+const EmailVerifiedPage = async () => {
+  await connection();
   return <EmailVerified />;
 };
 
