@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-import { CLIENT_ROUTES } from './lib/client-rotes';
+import { CLIENT_ROUTES } from './utils/client-rotes';
 import { adminAuth } from './lib/firebase-admin';
 
 const PUBLIC_ROUTES = [

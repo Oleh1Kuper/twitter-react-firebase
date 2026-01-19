@@ -7,7 +7,7 @@ import { useRouter } from 'next/navigation';
 import { zodResolver } from '@hookform/resolvers/zod';
 import axios from 'axios';
 import { createUserWithEmailAndPassword } from 'firebase/auth';
-import { doc, updateDoc } from 'firebase/firestore';
+import { httpsCallable } from 'firebase/functions';
 import z from 'zod';
 
 import GoogleIcon from '@/components/icons/google-icon';
@@ -31,9 +31,9 @@ import { Input } from '@/components/ui/input';
 import { Spinner } from '@/components/ui/spinner';
 import useDialogStates from '@/hooks/use-dialog-states';
 import useGoogleSignup from '@/hooks/use-google-signup';
-import { API_ROUTES } from '@/lib/api-routes';
-import { CLIENT_ROUTES } from '@/lib/client-rotes';
-import { auth, db } from '@/lib/firebase-client';
+import { auth, functions } from '@/lib/firebase-client';
+import { API_ROUTES } from '@/utils/api-routes';
+import { CLIENT_ROUTES } from '@/utils/client-rotes';
 
 import { signupSchema } from '../schema';
 
@@ -69,9 +69,10 @@ export function SignupForm() {
 
       await axios.post(API_ROUTES.AUTH_SESSION, { idToken });
 
-      const userDocRef = doc(db, 'users', cred.user.uid);
-      await updateDoc(userDocRef, {
+      const updateUser = httpsCallable(functions, 'updateUser');
+      await updateUser({
         displayName: `${firstName} ${lastName}`,
+        id: cred.user.uid,
       });
 
       if (!cred.user.emailVerified) {

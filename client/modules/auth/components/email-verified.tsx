@@ -6,8 +6,8 @@ import { useSearchParams } from 'next/navigation';
 import axios from 'axios';
 import { applyActionCode } from 'firebase/auth';
 
-import { API_ROUTES } from '@/lib/api-routes';
 import { auth } from '@/lib/firebase-client';
+import { API_ROUTES } from '@/utils/api-routes';
 
 import { VerifyStatus } from '../types';
 import VerifiedContent from './verified-content';

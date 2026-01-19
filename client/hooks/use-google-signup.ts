@@ -1,4 +1,4 @@
-import { API_ROUTES } from '@/lib/api-routes';
+import { API_ROUTES } from '@/utils/api-routes';
 import { auth } from '@/lib/firebase-client';
 import axios from 'axios';
 import { GoogleAuthProvider, signInWithPopup } from 'firebase/auth';

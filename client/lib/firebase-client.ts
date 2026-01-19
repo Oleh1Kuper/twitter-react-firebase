@@ -1,8 +1,8 @@
-import { getApps,initializeApp } from 'firebase/app';
-import { connectAuthEmulator,getAuth } from 'firebase/auth';
-import { connectFirestoreEmulator,getFirestore } from 'firebase/firestore';
-import { connectFunctionsEmulator,getFunctions } from 'firebase/functions';
-import { connectStorageEmulator,getStorage } from 'firebase/storage';
+import { getApps, initializeApp } from 'firebase/app';
+import { connectAuthEmulator, getAuth } from 'firebase/auth';
+import { connectFirestoreEmulator, getFirestore } from 'firebase/firestore';
+import { connectFunctionsEmulator, getFunctions } from 'firebase/functions';
+import { connectStorageEmulator, getStorage } from 'firebase/storage';
 
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,

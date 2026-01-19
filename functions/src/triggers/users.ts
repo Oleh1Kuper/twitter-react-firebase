@@ -8,8 +8,16 @@ export const onUserCreate = functions.auth.user().onCreate(async (user) => {
     .set({
       id: user.uid,
       email: user.email ?? null,
-      provider: user.providerData[0]?.providerId ?? 'password',
       displayName: user.displayName ?? null,
+      photoURL: user.photoURL ?? null,
+      bio: null,
+      provider: user.providerData[0]?.providerId ?? 'password',
       createdAt: admin.firestore.FieldValue.serverTimestamp(),
     });
+});
+
+export const onUserDelete = functions.auth.user().onDelete((user) => {
+  const doc = admin.firestore().collection('users').doc(user.uid);
+
+  return doc.delete();
 });
