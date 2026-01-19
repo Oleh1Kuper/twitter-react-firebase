@@ -13,8 +13,10 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 
+import { VerifyStatus } from '../types';
+
 interface VerifiedContentProps {
-  status: 'verifying' | 'success' | 'error' | 'invalid';
+  status: VerifyStatus;
   onRetry?: () => void;
 }
 

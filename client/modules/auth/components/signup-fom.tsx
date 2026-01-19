@@ -6,11 +6,7 @@ import { useRouter } from 'next/navigation';
 
 import { zodResolver } from '@hookform/resolvers/zod';
 import axios from 'axios';
-import {
-  createUserWithEmailAndPassword,
-  GoogleAuthProvider,
-  signInWithPopup,
-} from 'firebase/auth';
+import { createUserWithEmailAndPassword } from 'firebase/auth';
 import { doc, updateDoc } from 'firebase/firestore';
 import z from 'zod';
 
@@ -32,6 +28,10 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
+import { Spinner } from '@/components/ui/spinner';
+import useDialogStates from '@/hooks/use-dialog-states';
+import useGoogleSignup from '@/hooks/use-google-signup';
+import { API_ROUTES } from '@/lib/api-routes';
 import { CLIENT_ROUTES } from '@/lib/client-rotes';
 import { auth, db } from '@/lib/firebase-client';
 
@@ -52,17 +52,22 @@ export function SignupForm() {
     },
   });
 
+  const googleSignup = useGoogleSignup();
+  const { isLoading, setIsLoading } = useDialogStates();
+
   const onSubmit = async ({
     email,
     password,
     firstName,
     lastName,
   }: SignupFormData) => {
+    setIsLoading(true);
+
     try {
       const cred = await createUserWithEmailAndPassword(auth, email, password);
       const idToken = await cred.user.getIdToken();
 
-      await axios.post('/api/auth/session', { idToken });
+      await axios.post(API_ROUTES.AUTH_SESSION, { idToken });
 
       const userDocRef = doc(db, 'users', cred.user.uid);
       await updateDoc(userDocRef, {
@@ -74,22 +79,19 @@ export function SignupForm() {
       } else {
         router.push(CLIENT_ROUTES.HOME);
       }
-    } catch (error) {
-      console.error(error);
+    } catch {
+      form.setError('email', {
+        type: 'manual',
+        message: 'User already exists.',
+      });
+    } finally {
+      setIsLoading(false);
     }
   };
 
   const handleGoogleSignup = async () => {
-    const provider = new GoogleAuthProvider();
-    provider.setCustomParameters({
-      prompt: 'select_account',
-    });
-
     try {
-      const cred = await signInWithPopup(auth, provider);
-      const idToken = await cred.user.getIdToken();
-
-      await axios.post('/api/auth/session', { idToken });
+      const cred = await googleSignup();
 
       if (!cred.user.emailVerified) {
         router.push(CLIENT_ROUTES.VERIFY_EMAIL);
@@ -186,8 +188,13 @@ export function SignupForm() {
               )}
             />
 
-            <Button type="submit" className="w-full font-medium">
+            <Button
+              disabled={isLoading}
+              type="submit"
+              className="w-full font-medium"
+            >
               Sign up
+              {isLoading && <Spinner />}
             </Button>
           </form>
         </Form>
