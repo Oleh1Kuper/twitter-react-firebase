@@ -1,6 +1,5 @@
 'use client';
 
-import { useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 
 import axios from 'axios';
@@ -23,15 +22,7 @@ import { CLIENT_ROUTES } from '@/utils/client-rotes';
 
 const UserDropdown = () => {
   const router = useRouter();
-  const { myInfo } = useMyInfo();
-
-  const initials = useMemo(() => {
-    if (!myInfo?.displayName) return '';
-
-    const [firstName, lastName] = myInfo.displayName.split(' ');
-
-    return `${firstName[0]}${lastName[0]}`.toUpperCase();
-  }, [myInfo]);
+  const { myInfo, initials } = useMyInfo();
 
   const handleLogout = async () => {
     const idToken = await auth.currentUser?.getIdToken();
@@ -67,7 +58,7 @@ const UserDropdown = () => {
           </div>
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
-        <DropdownMenuItem>
+        <DropdownMenuItem onClick={() => router.push(CLIENT_ROUTES.PROFILE)}>
           <User className="mr-2 h-4 w-4" />
           <span>Profile</span>
         </DropdownMenuItem>

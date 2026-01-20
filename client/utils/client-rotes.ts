@@ -4,4 +4,6 @@ export enum CLIENT_ROUTES {
   SIGNUP = '/signup',
   VERIFY_EMAIL = '/verify-email',
   EMAIL_VERIFIED = '/email-verified',
+
+  PROFILE = '/profile',
 }
