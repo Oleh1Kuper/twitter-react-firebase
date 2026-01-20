@@ -10,6 +10,7 @@ export const profileSchema = z.object({
 
 export const passwordsSchema = z
   .object({
+    currentPassword: passwordSchema,
     newPassword: passwordSchema,
     confirmPassword: z.string(),
   })

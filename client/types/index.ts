@@ -7,3 +7,5 @@ export type User = {
   photoURL: string | null;
   bio: string | null;
 };
+
+export type UserPayload = Omit<User, 'email' | 'provider' | 'createdAt'>;

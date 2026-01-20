@@ -1,12 +1,13 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
 
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Camera } from 'lucide-react';
 import * as z from 'zod';
 
+import Services from '@/api';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import {
@@ -37,14 +38,28 @@ const ProfileForm = () => {
   const { myInfo, initials } = useMyInfo();
   const [imagePreview, setImagePreview] = useState<string | null>(null);
 
+  const defaultValues = useMemo(() => {
+    if (!myInfo) {
+      return { firstName: '', lastName: '', bio: '' };
+    }
+
+    const [firstName, lastName] = (myInfo.displayName ?? '').split(' ');
+
+    return {
+      firstName,
+      lastName,
+      bio: myInfo.bio ?? '',
+    };
+  }, [myInfo]);
+
   const form = useForm<ProfileFormValues>({
     resolver: zodResolver(profileSchema),
-    defaultValues: {
-      firstName: '',
-      lastName: '',
-      bio: '',
-    },
+    defaultValues,
   });
+
+  useEffect(() => {
+    form.reset(defaultValues);
+  }, [defaultValues, form]);
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -55,12 +70,29 @@ const ProfileForm = () => {
         setImagePreview(reader.result as string);
       };
       reader.readAsDataURL(file);
+      form.setValue('file', file);
     }
   };
 
-  const onSubmit = (data: ProfileFormValues) => {
-    console.log('Profile data:', data);
-    console.log('Profile image:', imagePreview);
+  const onSubmit = async (data: ProfileFormValues) => {
+    if (!myInfo) return;
+
+    let photoURL = myInfo.photoURL ?? null;
+
+    try {
+      if (data.file) {
+        photoURL = await Services.uploadAvatar(data.file, myInfo.id);
+      }
+
+      await Services.updateUser({
+        id: myInfo.id,
+        bio: myInfo.bio,
+        displayName: `${data.firstName} ${data.lastName}`,
+        photoURL,
+      });
+    } catch (error) {
+      console.log(error);
+    }
   };
 
   return (
@@ -80,7 +112,7 @@ const ProfileForm = () => {
                   <AvatarImage
                     src={imagePreview || myInfo?.photoURL || ''}
                     alt="Profile picture"
-                    className='object-cover'
+                    className="object-cover"
                   />
                   <AvatarFallback className="text-lg">
                     {initials}
@@ -144,7 +176,7 @@ const ProfileForm = () => {
                   <FormControl>
                     <Textarea
                       placeholder="Tell us a little about yourself..."
-                      className="min-h-[120px] resize-none"
+                      className="min-h-30 resize-none"
                       {...field}
                     />
                   </FormControl>

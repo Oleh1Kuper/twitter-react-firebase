@@ -30,9 +30,9 @@ import { Input } from '@/components/ui/input';
 import { Spinner } from '@/components/ui/spinner';
 import useDialogStates from '@/hooks/use-dialog-states';
 import useGoogleSignup from '@/hooks/use-google-signup';
+import { auth } from '@/lib/firebase-client';
 import { API_ROUTES } from '@/utils/api-routes';
 import { CLIENT_ROUTES } from '@/utils/client-rotes';
-import { auth } from '@/lib/firebase-client';
 
 import { loginSchema } from '../schema';
 

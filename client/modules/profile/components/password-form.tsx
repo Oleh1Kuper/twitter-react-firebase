@@ -1,9 +1,16 @@
 'use client';
 
+import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 
 import { zodResolver } from '@hookform/resolvers/zod';
-import { updatePassword } from 'firebase/auth';
+import axios from 'axios';
+import { FirebaseError } from 'firebase/app';
+import {
+  EmailAuthProvider,
+  reauthenticateWithCredential,
+  updatePassword,
+} from 'firebase/auth';
 import * as z from 'zod';
 
 import PasswordInput from '@/components/shared/password-input';
@@ -26,6 +33,7 @@ import {
 import { Spinner } from '@/components/ui/spinner';
 import useDialogStates from '@/hooks/use-dialog-states';
 import { auth } from '@/lib/firebase-client';
+import { API_ROUTES } from '@/utils/api-routes';
 
 import { passwordsSchema } from '../schema';
 
@@ -33,9 +41,11 @@ type PasswordFormValues = z.infer<typeof passwordsSchema>;
 
 const PasswordForm = () => {
   const { isLoading, setIsLoading } = useDialogStates();
+  const [isToManyRequests, setIsToManyRequests] = useState<boolean>(false);
   const form = useForm<PasswordFormValues>({
     resolver: zodResolver(passwordsSchema),
     defaultValues: {
+      currentPassword: '',
       newPassword: '',
       confirmPassword: '',
     },
@@ -44,18 +54,49 @@ const PasswordForm = () => {
   const onSubmit = async (data: PasswordFormValues) => {
     const user = auth.currentUser;
 
-    if (!user) return;
+    if (!user || !user.email) return;
 
     setIsLoading(true);
+    setIsToManyRequests(false);
 
     try {
-      updatePassword(user, data.confirmPassword);
-      form.reset();
+      const credential = EmailAuthProvider.credential(
+        user.email,
+        data.currentPassword,
+      );
+
+      await reauthenticateWithCredential(user, credential);
+      await updatePassword(user, data.confirmPassword);
     } catch (error) {
-      console.log(error);
-    } finally {
       setIsLoading(false);
+
+      if (error instanceof FirebaseError) {
+        if (error.code === 'auth/invalid-credential') {
+          form.setError('currentPassword', {
+            message: 'Incorrect current password',
+          });
+          return;
+        }
+
+        if (error.code === 'auth/too-many-requests') {
+          setIsToManyRequests(true);
+          return;
+        }
+      }
+
+      alert('Failed to update password.');
+      return;
     }
+
+    try {
+      const idToken = await user.getIdToken(true);
+      await axios.post(API_ROUTES.AUTH_SESSION, { idToken });
+    } catch (error) {
+      console.warn('Password updated but session refresh failed', error);
+    }
+
+    form.reset();
+    setIsLoading(false);
   };
 
   return (
@@ -69,6 +110,23 @@ const PasswordForm = () => {
       <CardContent>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+            <FormField
+              control={form.control}
+              name="currentPassword"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Current Password</FormLabel>
+                  <FormControl>
+                    <PasswordInput
+                      placeholder="Enter your current password"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
             <FormField
               control={form.control}
               name="newPassword"
@@ -102,6 +160,12 @@ const PasswordForm = () => {
                 </FormItem>
               )}
             />
+
+            {isToManyRequests && (
+              <div className="text-destructive bg-destructive/10 rounded-md p-2">
+                <p>Too many attempts. Try again later.</p>
+              </div>
+            )}
 
             <div className="flex justify-end">
               <Button type="submit" disabled={isLoading}>
