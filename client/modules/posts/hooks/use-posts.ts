@@ -1,11 +1,11 @@
-import Services from '@/api';
+import PostServices from '@/modules/posts/api';
 import { QUERY_KEYS } from '@/utils/query-keys';
 import { useQuery } from '@tanstack/react-query';
 
 const usePosts = () => {
   const { data, ...rest } = useQuery({
     queryKey: [QUERY_KEYS.POSTS],
-    queryFn: Services.getPosts,
+    queryFn: PostServices.getPosts,
   });
 
   return { posts: data ?? [], ...rest };

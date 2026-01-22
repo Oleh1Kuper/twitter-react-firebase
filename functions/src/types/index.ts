@@ -10,3 +10,7 @@ export type NewPostPayload = {
   content: string;
   imagePath?: string;
 };
+
+export type UpdatePostPayload = Partial<NewPostPayload> & {
+  postId: string;
+};

@@ -16,6 +16,10 @@ export type NewPostPayload = {
   imagePath?: string;
 };
 
+export type UpdatePostPayload = Partial<NewPostPayload> & {
+  postId: string;
+};
+
 export type Comment = {
   id: string;
   author: {

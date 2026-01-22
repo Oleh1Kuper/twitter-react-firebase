@@ -1,14 +1,14 @@
 'use client';
 
-import React, { useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import Image from 'next/image';
 
 import { zodResolver } from '@hookform/resolvers/zod';
+import { useQueryClient } from '@tanstack/react-query';
 import { ImagePlus, X } from 'lucide-react';
 import z from 'zod';
 
-import Services from '@/api';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -23,9 +23,12 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import useDialogStates from '@/hooks/use-dialog-states';
 import { auth } from '@/lib/firebase-client';
+import PostServices from '@/modules/posts/api';
 import { postSchema } from '@/modules/posts/schema';
 import type { Post } from '@/types';
+import { QUERY_KEYS } from '@/utils/query-keys';
 
 import {
   Form,
@@ -35,6 +38,7 @@ import {
   FormLabel,
   FormMessage,
 } from '../ui/form';
+import { Spinner } from '../ui/spinner';
 
 type PostFromData = z.infer<typeof postSchema>;
 
@@ -44,33 +48,55 @@ type EditPostDialogProps = {
 };
 
 const PostDialog = ({ post, children }: EditPostDialogProps) => {
+  const queryClient = useQueryClient();
+  const { isLoading, setIsLoading, open, setOpen } = useDialogStates();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [imagePreview, setImagePreview] = useState<string>('');
 
   const form = useForm<PostFromData>({
     resolver: zodResolver(postSchema),
-    defaultValues: {
-      content: '',
-      title: '',
-    },
+    defaultValues: { content: '', title: '' },
   });
+
+  useEffect(() => {
+    if (!post) return;
+
+    form.reset({ content: post.content, title: post.title });
+    setImagePreview(post.photoUrl ?? '');
+  }, [form, post]);
 
   const onSubmit = async ({ content, title, file }: PostFromData) => {
     const user = auth.currentUser;
 
     if (!user) return;
 
+    setIsLoading(true);
+
     try {
       let imagePath: string | undefined;
 
       if (file) {
-        imagePath = await Services.uploadPostImage(file, user.uid);
+        imagePath = await PostServices.uploadPostImage(file, user.uid);
       }
 
-      const res = await Services.createPost({ content, title, imagePath });
-      console.log(res);
+      if (post) {
+        await PostServices.updatePost({
+          content,
+          title,
+          imagePath,
+          postId: post.id,
+        });
+      } else {
+        await PostServices.createPost({ content, title, imagePath });
+        form.reset();
+      }
+
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.POSTS] });
+      setOpen(false);
     } catch (error) {
       console.log(error);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -90,7 +116,7 @@ const PostDialog = ({ post, children }: EditPostDialogProps) => {
   };
 
   return (
-    <Dialog>
+    <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>{children}</DialogTrigger>
       <DialogContent className="sm:max-w-lg">
         <DialogHeader>
@@ -185,7 +211,9 @@ const PostDialog = ({ post, children }: EditPostDialogProps) => {
                   Cancel
                 </Button>
               </DialogClose>
-              <Button type="submit">Save changes</Button>
+              <Button disabled={isLoading} type="submit">
+                Save changes {isLoading && <Spinner />}
+              </Button>
             </DialogFooter>
           </form>
         </Form>

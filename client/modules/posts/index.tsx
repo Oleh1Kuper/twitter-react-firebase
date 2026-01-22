@@ -1,6 +1,6 @@
 'use client';
 
-import usePosts from '@/hooks/use-posts';
+import usePosts from '@/modules/posts/hooks/use-posts';
 import type { Post } from '@/types';
 
 import PostCard from './components/post-card';
@@ -125,8 +125,6 @@ const DUMMY_POSTS: Post[] = [
 
 const PostsModule = () => {
   const { posts } = usePosts();
-
-  console.log(JSON.stringify(posts, null, 2));
 
   return (
     <section className="mx-auto max-w-200">

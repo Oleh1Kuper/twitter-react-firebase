@@ -8,3 +8,4 @@ export const onUserDelete = userTriggers.onUserDelete;
 export const updateUser = userControllers.updateUser;
 
 export const createPost = postsControllers.createPost;
+export const updatePost = postsControllers.updatePost;
