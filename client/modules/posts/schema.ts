@@ -8,3 +8,10 @@ export const postSchema = z.object({
     .min(3, 'Content is required.')
     .max(500, 'Content must be at most 500 character.'),
 });
+
+export const commentSchema = z.object({
+  comment: z
+    .string()
+    .min(1, 'Content is required.')
+    .max(500, 'Content must be at most 500 character.'),
+});

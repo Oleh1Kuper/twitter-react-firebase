@@ -14,3 +14,13 @@ export type NewPostPayload = {
 export type UpdatePostPayload = Partial<NewPostPayload> & {
   postId: string;
 };
+
+export type AddCommentPayload = {
+  postId: string;
+  content: string;
+};
+
+export type AddReplyPayload = AddCommentPayload & {
+  commentId: string;
+}
+

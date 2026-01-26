@@ -1,6 +1,15 @@
 import { db, functions, storage } from '@/lib/firebase-client';
-import { NewPostPayload, Post, UpdatePostPayload } from '@/types';
-import { collection, getDocs } from 'firebase/firestore';
+import {
+  AddCommentPayload,
+  AddReplyPayload,
+  Comment,
+  GetRepliesProps,
+  NewPostPayload,
+  Post,
+  Reply,
+  UpdatePostPayload,
+} from '../types';
+import { collection, getDocs, orderBy, query } from 'firebase/firestore';
 import { httpsCallable } from 'firebase/functions';
 import { ref, uploadBytes } from 'firebase/storage';
 
@@ -39,6 +48,56 @@ class PostServices {
         updatedAt: data.updatedAt.toDate(),
       } as Post;
     });
+  }
+
+  static async addComment(payload: AddCommentPayload) {
+    const createComment = httpsCallable(functions, 'createComment');
+    return await createComment(payload);
+  }
+
+  static async getComments(postId: string) {
+    const q = query(
+      collection(db, 'posts', postId, 'comments'),
+      orderBy('createdAt', 'desc'),
+    );
+
+    const snapshot = await getDocs(q);
+
+    return snapshot.docs.map((doc) => {
+      const data = doc.data();
+
+      return {
+        id: doc.id,
+        ...data,
+        createdAt: data.createdAt?.toDate(),
+        updatedAt: data.updatedAt?.toDate(),
+      } as Comment;
+    });
+  }
+
+  static async getReplies({ commentId, postId }: GetRepliesProps) {
+    const q = query(
+      collection(db, 'posts', postId, 'comments', commentId, 'replies'),
+      orderBy('createdAt', 'desc'),
+    );
+
+    const snapshot = await getDocs(q);
+
+    return snapshot.docs.map((doc) => {
+      const data = doc.data();
+
+      return {
+        id: doc.id,
+        ...data,
+        createdAt: data.createdAt?.toDate(),
+        updatedAt: data.updatedAt?.toDate(),
+      } as Reply;
+    });
+  }
+
+  static async addReply(payload: AddReplyPayload) {
+    const createReply = httpsCallable(functions, 'createReply');
+    return await createReply(payload);
   }
 }
 

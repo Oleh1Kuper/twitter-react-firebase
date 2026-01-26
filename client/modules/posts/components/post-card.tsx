@@ -24,7 +24,11 @@ import {
 } from '@/components/ui/card';
 import useMyInfo from '@/hooks/use-my-info';
 import { cn } from '@/lib/utils';
-import type { Post } from '@/types';
+import getInitials from '@/utils/get-initials';
+
+import useComments from '../hooks/use-comments';
+import type { Post } from '../types';
+import CommentSection from './comment-section';
 
 type PostCardProps = {
   post: Post;
@@ -33,14 +37,7 @@ type PostCardProps = {
 const PostCard = ({ post }: PostCardProps) => {
   const { myInfo } = useMyInfo();
   const [showComments, setShowComments] = useState(false);
-
-  const getInitials = (name: string) => {
-    if (!name) return '';
-
-    const [firstName, lastName] = name.split(' ');
-
-    return `${firstName[0]}${lastName[0]}`.toUpperCase();
-  };
+  const { comments } = useComments(post.id, showComments);
 
   return (
     <Card className={cn('w-full', post.photoUrl && 'pt-0')}>
@@ -117,6 +114,12 @@ const PostCard = ({ post }: PostCardProps) => {
             )}
           </Button>
         </div>
+
+        {showComments && (
+          <div className="border-border w-full border-t pt-4">
+            <CommentSection postId={post.id} comments={comments} />
+          </div>
+        )}
       </CardFooter>
     </Card>
   );
